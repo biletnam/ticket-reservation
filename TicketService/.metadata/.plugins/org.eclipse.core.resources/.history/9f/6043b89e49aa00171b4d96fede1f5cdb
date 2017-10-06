@@ -1,0 +1,47 @@
+# Ticket Application
+This application requests user to provide input for
+1. Number of tickets to reserve
+2. email address
+
+Upon checking the availability, the system asks for "Confirm to reserve the seats"
+
+
+## Ticket Application is a Client-Server multi-threading application
+The application is deployed as jar under the target directory. Server runs on 8080 port and is ready to accept the requests from client. Multiple clients can be try to book seats at same time. Hence, the seats are synchronized to avoid multiple bookings on a single seat.
+
+## Run Locally
+### Prerequisites
+- Java 1.6 or above
+- Maven
+- (Optional) Spring Tool Suite/ eclipse
+
+### Running the application from the command line
+1. Navigate to the project directory ../../Ticket
+2. Build the jar file.
+    `mvn clean`
+    `mvn install`
+  
+3. To instantiate server, run the TicketServer class
+    `java -cp target/Ticket-0.0.1-SNAPSHOT.jar com.ticket.ticketServer.TicketServer`
+    
+4. To open clients, open another terminal and navigate to the folder ../../Ticket
+5. Run the TicketClient class
+	`java -cp target/Ticket-0.0.1-SNAPSHOT.jar com.ticket.ticketServer.TicketClient` 
+
+### Running the application from STS
+1. Import the project. On the File menu, click Import, then select Existing Maven Projects, then select the root directory. When the list populates, check that your pom is selected, the press finish.
+2. Create the run configuration: 
+    * On the Run menu, select Run Configurations... 
+    * Choose Spring Boot App in the navigation panel on the left (double-clicking this should create a new configuration)
+    * Name the configuration (this can be anything; ea-eai-api would be a good option)
+    * Select ea-eai-api as the project
+    * Press Search to find the main type (it should be com.cof.capitalone.EaiApplication)
+    * Click the Environment tab
+    * Press new for each variable you must add. Contact a team member for the most up-to-date environment variables. _The application will not run unless you have these variables set correctly._
+3. Click Apply and then Run
+
+4. You should now be able to access the API in Postman or in your browser. Go to `http://localhost:8080/enterprise/architecture/converge/app-inventory/health` 
+## Contributing
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to develop locally and submit a pull request.
+
+  

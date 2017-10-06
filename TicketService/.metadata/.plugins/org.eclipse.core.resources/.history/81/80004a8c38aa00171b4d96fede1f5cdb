@@ -1,0 +1,164 @@
+package com.ticket.ticketServer;
+
+import java.io.IOException;
+import java.io.PrintStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+
+import com.ticket.ticketService.TicketServiceImpl;
+import com.ticket.ticketStructure.Ticket;
+
+public class TicketServer {
+
+	private static final int PORT = 8080;
+
+	private static List<Ticket> tickets = new ArrayList<Ticket>();
+
+	private static List<Ticket> ticketsOnHold = new ArrayList<Ticket>();
+	private static List<Ticket> ticketsReserved = new ArrayList<Ticket>();
+
+	static {
+		for (int i = 0; i < 25; i++) {
+			tickets.add(new Ticket(i, ""));
+		}
+	}
+
+	public static void main(String[] args) throws IOException {
+
+		System.out.println("Starting Ticket Reservation Server");
+		ServerSocket listener = new ServerSocket(PORT);
+		System.out.println(listener.toString());
+		System.out.println("");
+		try {
+			while (true) {
+				Socket s = listener.accept();
+				new Handler(s).start();
+
+			}
+		} finally {
+			listener.close();
+		}
+	}
+
+	private static class Handler extends Thread {
+		private Socket socket;
+		private Scanner in;
+		private String doReserve;
+		private PrintStream out;
+		private int numberOfTicketsRequested;
+		private String customerEmailId;
+		
+
+		public Handler(Socket socket) {
+			this.socket = socket;
+		}
+
+		public void run() {
+			try {
+				
+				in = new Scanner(socket.getInputStream());
+				out = new PrintStream(socket.getOutputStream());
+				
+				TicketServiceImpl ticketServiceImpl = new TicketServiceImpl();
+				int availableTickets = 0;
+				Lock lock = null;
+				if (lock.tryLock(10L, TimeUnit.SECONDS)) {
+					try {
+					numberOfTicketsRequested = in.nextInt();
+					customerEmailId = in.next();
+					System.out.println("Reserving " + numberOfTicketsRequested + " tickets for: " + customerEmailId);
+					if (numberOfTicketsRequested > 0) {
+						// synchronized (tickets) {
+						availableTickets = ticketServiceImpl.numSeatsAvailable(tickets);
+						if (availableTickets > 0 && numberOfTicketsRequested < availableTickets) {
+							ticketsOnHold = ticketServiceImpl.findAndHoldSeats(numberOfTicketsRequested,
+									customerEmailId, tickets);
+							out.println("Please confirm to reserve tickets YES(Y)/NO(N) ");
+							long limit = 1000L;
+							long startTime = System.currentTimeMillis();
+							doReserve = in.next();
+							if ((startTime + limit) < System.currentTimeMillis()) {
+								releaseTicketsOnHold(ticketsOnHold);
+								out.println("Oops! Server Timed out");
+								return;
+							}
+
+						} else {
+							out.println(
+									"Unable to make reservation. You have requested to book " + numberOfTicketsRequested
+											+ ", but Maximum available seats are: " + totalAvailableSeats());
+							return;
+						}
+					}
+
+					if (doReserve.equalsIgnoreCase("YES") || doReserve.equalsIgnoreCase("Y")) {
+						//synchronized (tickets) {
+							ticketsReserved = ticketServiceImpl.reserveSeats(ticketsOnHold, customerEmailId, tickets);
+							if (ticketsReserved.size() > 0) {
+								ticketsOnHold = new ArrayList<Ticket>();
+							}
+							StringBuffer reservedTicketsList = new StringBuffer("");
+							for (Ticket t : ticketsReserved) {
+								reservedTicketsList.append(t.getSeatNumber());
+								reservedTicketsList.append(" ");
+							}
+							System.out.println("Seat numbers reserved on " + customerEmailId + " are "
+									+ reservedTicketsList.toString().trim());
+							out.println("Seat numbers reserved on " + customerEmailId + " are "
+									+ reservedTicketsList.toString().trim());
+						//}
+					} else {
+						out.println("Thank You, " + customerEmailId);
+						return;
+					}
+
+				} finally {
+					lock.unlock();
+				}
+				} else {
+					out.println("Please reserve tickets > 0");
+					return;
+				}
+
+			} catch (IOException e) {
+				System.out.println(e);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				try {
+					socket.close();
+				} catch (IOException e) {
+				}
+			}
+		}
+		
+		public int totalAvailableSeats() {
+			int availableSeatsAtThisTime = 0;
+			for(Ticket t: tickets) {
+				if(t.getStatus().equalsIgnoreCase("AVAILABLE")) {
+					availableSeatsAtThisTime++;
+				}
+			}
+			
+			return availableSeatsAtThisTime;
+		}
+		
+		public void releaseTicketsOnHold(List<Ticket> ticketsOnHold) {
+			int bookingCount = ticketsOnHold.size();
+			for (Ticket t : ticketsOnHold) {
+				if (tickets.contains(t) && bookingCount > 0) {
+					t.setStatus(Ticket.availableStatus.AVAILABLE.name().toString());
+					tickets.set(t.getSeatNumber(), t);
+					bookingCount--;
+				}
+			}
+		}
+		
+	}
+}

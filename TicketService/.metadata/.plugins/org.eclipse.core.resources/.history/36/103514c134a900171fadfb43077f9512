@@ -1,0 +1,5 @@
+package com.ticket.ticketService;
+
+public interface TicketService {
+
+}

@@ -1,0 +1,109 @@
+# Ticket Service Application
+This application requests user to provide input for
+1. Number of tickets to reserve
+2. email address
+
+Upon checking the availability, the system asks for "Confirm to reserve the seats"
+
+
+## EAI Application API is a Spring Boot Application
+This is the base repo for EAI application and the deployed application is a springboot jar under the target directory. The EAI api adheres to [Springboot](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/) RESTFUL API development standards. Below is an example of a call to our API. For more api details visit our [swagger documentation](www.linkoncewegetit). 
+
+
+####BuildJob
+https://miscjenkins.kdc.capitalone.com/miscjenkins/view/OpenOne/job/ea-eai-api/
+
+## GET API
+
+#### GET end point
+http://localhost:8080/enterprise/architecture/app-inventory
+
+#### GET Query Parameter for a single record
+http://localhost:8080/enterprise/architecture/app-inventory?asvCiName=[id]
+
+Sample Get a Single EAI By ASVCiName: 
+
+`GET /enterprise/architecture/app-inventory?asvCiName=ASVTESTING`
+
+Sample Response: 
+```json
+{
+	"total":1,
+	"appInventoryObject":
+		[
+			{
+				"asvCiName":"ASVTESTING",
+				"asvCiId":"CI123456",
+				"commonName":"NEWTESTINGEMAIL",
+				"aliasName":"Changing from Safari",
+				"asvAdditionalTxt":"Testing Multi updates",
+				"divsnlChiefArchitect":"",
+				"architectOwner":"",
+				"architectNote":"",
+				"appDisposition":"",
+				"retirementTiming":"",
+				"statusDescription":"In Use",
+				"apiRoadmap":"Invest",
+				"applicationProvider":"TBD",
+				"providerName":"TBD",
+				"lobOwnerName":"ITO",
+				"busOwnerName":"TBD",
+				"infotechSvcOwnerNm":"TBD",
+				"developmentOwnerName":"TBD",
+				"serviceLevelText":"",
+				"appSecurityRvwTier":"TBD",
+				"missionCriticalStatDesc":"TBD",
+				"serviceCount":"0.0",
+				"serviceDesc":"NA",
+				"serviceType":"NA",
+				"approvingArchitect":null,
+				"approvingArchitectEid":null,
+				"ddcName":null,
+				"ddcEid":null,
+				"serviceOwnerEid":null,
+				"weaveRequestDetails":null,
+				"lastUpdated":"06/05/17",
+				"submittedDate":"05/23/17",
+				"lastCertifiedDate":null,
+				"isCertified":false,
+				"auditLog":null
+			}
+		]
+}
+```
+
+## Run Locally
+### Prerequisites
+- Java 1.8
+- Maven
+- (Optional) Spring Tool Suite
+
+### Running the application from the command line
+1. Navigate to the project directory
+2. Build the jar file. You will have to specify `-D<env-var-name>=<env-var-value>` for each environment variable. Contact a team member for the most up-to-date environment variables.
+
+    `mvn -s settings-openoneapplication.xml -D<env-var-name>=<env-var-value> clean package`
+  
+3. Run the jar
+
+    `java -jar target/ea-eai-api-REPLACE_VERSION_SNAPSHOT.jar`
+  
+4. You should now be able to access the API in Postman or in your browser. Go to `http://localhost:8080/enterprise/architecture/converge/app-inventory/health`  
+
+### Running the application from STS
+1. Import the project. On the File menu, click Import, then select Existing Maven Projects, then select the root directory. When the list populates, check that your pom is selected, the press finish.
+2. Create the run configuration: 
+    * On the Run menu, select Run Configurations... 
+    * Choose Spring Boot App in the navigation panel on the left (double-clicking this should create a new configuration)
+    * Name the configuration (this can be anything; ea-eai-api would be a good option)
+    * Select ea-eai-api as the project
+    * Press Search to find the main type (it should be com.cof.capitalone.EaiApplication)
+    * Click the Environment tab
+    * Press new for each variable you must add. Contact a team member for the most up-to-date environment variables. _The application will not run unless you have these variables set correctly._
+3. Click Apply and then Run
+
+4. You should now be able to access the API in Postman or in your browser. Go to `http://localhost:8080/enterprise/architecture/converge/app-inventory/health` 
+## Contributing
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to develop locally and submit a pull request.
+
+  

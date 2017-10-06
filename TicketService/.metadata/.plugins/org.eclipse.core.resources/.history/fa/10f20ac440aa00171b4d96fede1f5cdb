@@ -1,0 +1,31 @@
+package com.ticket.ticketServer;
+
+import java.io.PrintStream;
+import java.util.Scanner;
+
+public class TimeOutThread implements Runnable {
+
+    private Thread watchedThread;
+    Scanner in;
+    PrintStream out;
+
+    public TimeOutThread(Thread watchedThread) {
+        super();
+        this.watchedThread = watchedThread;
+    }
+
+    public void run() {
+        System.out.println("Watcher running on " + watchedThread.getName());
+
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Enter any albhapet: ");
+        String s = scanner.next();
+        if (s != null) watchedThread.interrupt();
+        out.println(s);
+        System.out.println("You entered: " + s);
+
+    }
+
+}
+

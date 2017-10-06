@@ -1,0 +1,33 @@
+package com.ticket.ticketServer;
+
+import java.util.Scanner;
+
+public class UserInputWatcher implements Runnable {
+
+	private Thread watchedThread;
+	private String doReserve;
+
+	public String getDoReserve() {
+		return doReserve;
+	}
+
+	public void setDoReserve(String doReserve) {
+		this.doReserve = doReserve;
+	}
+
+	public UserInputWatcher(Thread watchedThread, String doReserve) {
+		super();
+		this.watchedThread = watchedThread;
+		this.doReserve = doReserve;
+	}
+
+	public void run() {
+
+		Scanner scanner = new Scanner(System.in);
+		doReserve = scanner.nextLine();
+		if (doReserve != null) {
+			watchedThread.interrupt();
+		}
+
+	}
+}

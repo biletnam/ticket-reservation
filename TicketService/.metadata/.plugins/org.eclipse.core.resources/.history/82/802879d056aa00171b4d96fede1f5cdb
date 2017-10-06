@@ -1,0 +1,33 @@
+package com.ticket.ticketServer;
+
+import java.util.Scanner;
+
+public class UserInputWatcher implements Runnable {
+
+	private Thread watchedThread;
+	public static String doReserve;
+
+	public UserInputWatcher(Thread watchedThread) {
+		super();
+		this.watchedThread = watchedThread;
+	}
+
+	public void run() {
+
+		Scanner scanner = new Scanner(System.in);
+		doReserve = scanner.nextLine();
+		while (true) {
+			if ("YES".equalsIgnoreCase(doReserve) || "Y".equalsIgnoreCase(doReserve) || "NO".equalsIgnoreCase(doReserve)
+					|| "N".equalsIgnoreCase(doReserve)) {
+				notify();
+				watchedThread.interrupt();
+				break;
+			} else {
+				System.out.println("Please enter Valid selection. (YES)(Y) or (NO)(N)");
+				System.out.println("Please confirm to reserve YES(Y)/NO(N): ");
+				doReserve = scanner.nextLine();
+			}
+		}
+
+	}
+}

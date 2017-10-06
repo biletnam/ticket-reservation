@@ -1,0 +1,27 @@
+package com.ticket.ticketStructure;
+
+public class UserRequirements {
+	private int numberOfTickets;
+	private String customerEmailId;
+	 
+	public UserRequirements(int numberOfTickets, String customerEmailId) {
+		this.numberOfTickets = numberOfTickets;
+		this.customerEmailId = customerEmailId;
+	}
+	
+	
+	public int getNumberOfTickets() {
+		return numberOfTickets;
+	}
+	public void setNumberOfTickets(int numberOfTickets) {
+		this.numberOfTickets = numberOfTickets;
+	}
+	public String getCustomerEmailId() {
+		return customerEmailId;
+	}
+	public void setCustomerEmailId(String customerEmailId) {
+		this.customerEmailId = customerEmailId;
+	}
+	
+	
+}

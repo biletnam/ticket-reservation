@@ -1,0 +1,26 @@
+package com.ticket.ticketServer;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+
+public class ExecutorServiceImpl implements Runnable{
+	
+	private final ExecutorService executor;
+	
+	public ExecutorServiceImpl(final ExecutorService executor) {
+		this.executor = executor;
+	}
+	
+	public void run() {
+		boolean terminated = false;
+		while(!terminated) {
+			try {
+				terminated = executor.awaitTermination(10, TimeUnit.MILLISECONDS);
+			} catch (final InterruptedException ex) {
+               
+            }
+		}
+	}
+	
+
+}

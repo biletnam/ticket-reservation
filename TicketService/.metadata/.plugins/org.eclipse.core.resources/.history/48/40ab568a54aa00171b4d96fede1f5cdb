@@ -1,0 +1,66 @@
+package com.ticket.ticketServer;
+
+import java.io.IOException;
+import java.io.PrintStream;
+import java.net.Socket;
+import java.util.Scanner;
+
+public class TicketClient {
+
+    Scanner in;
+    PrintStream out;
+    String doReserve;
+    
+    @SuppressWarnings("resource")
+	private void run() {
+			Scanner in1 = new Scanner(System.in);
+			Socket socket = new Socket("127.0.0.1", 8080);
+			in = new Scanner(socket.getInputStream());
+			
+			int numberOfTickets;
+			do {
+			    System.out.println("Please enter number of tickets to reserve: ");
+			    while (!in1.hasNextInt()) {
+			        System.out.println("That's not a number!");
+			        in1.next();
+			    }
+			    numberOfTickets = in1.nextInt();
+			} while (numberOfTickets <= 0);
+			
+			out = new PrintStream(socket.getOutputStream());
+
+			System.out.println("Please enter valid email address: ");
+			String emailAddress = in1.next();
+
+			out.println(numberOfTickets);
+			out.println(emailAddress);
+
+			String returnStatus = in.nextLine();
+			if ("true".equalsIgnoreCase(returnStatus)) {
+				Thread watcher = new Thread(new UserInputWatcher(Thread.currentThread(), doReserve));
+				watcher.start();
+
+				try {
+					System.out.println("Please confirm to reserve YES(Y)/NO(N): ");
+					Thread.sleep(10000);
+					watcher.stop();
+					out.println("NO");
+					System.out.println("Oops! Server timed out. Please try again");
+					System.exit(0);
+				} catch (InterruptedException e) {
+					watcher.stop();
+					out.println("YES");
+					String s = in.nextLine();
+					System.out.println(s);
+				}
+			} else {
+				System.out.println(returnStatus);
+			}
+        
+    }
+
+    public static void main(String[] args) throws Exception {
+    	TicketClient client = new TicketClient();
+        client.run();
+    }
+}

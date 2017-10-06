@@ -1,0 +1,163 @@
+package com.ticket.ticketServer;
+
+import java.io.IOException;
+import java.io.PrintStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+import com.ticket.ticketService.TicketServiceImpl;
+import com.ticket.ticketStructure.Ticket;
+
+public class TicketServer {
+
+	private static final int PORT = 8080;
+
+	private static List<Ticket> tickets = new ArrayList<Ticket>();
+
+	private static List<Ticket> ticketsOnHold = new ArrayList<Ticket>();
+	private static String  reservationUniqueId = "";
+
+	static {
+		tickets.add(new Ticket(11, ""));
+		tickets.add(new Ticket(12, ""));
+		tickets.add(new Ticket(13, ""));
+		tickets.add(new Ticket(14, ""));
+		tickets.add(new Ticket(15, ""));
+		tickets.add(new Ticket(21, ""));
+		tickets.add(new Ticket(22, ""));
+		tickets.add(new Ticket(23, ""));
+		tickets.add(new Ticket(24, ""));
+		tickets.add(new Ticket(25, ""));
+		tickets.add(new Ticket(31, ""));
+		tickets.add(new Ticket(32, ""));
+		tickets.add(new Ticket(33, ""));
+		tickets.add(new Ticket(34, ""));
+		tickets.add(new Ticket(35, ""));
+		tickets.add(new Ticket(41, ""));
+		tickets.add(new Ticket(42, ""));
+		tickets.add(new Ticket(43, ""));
+		tickets.add(new Ticket(44, ""));
+		tickets.add(new Ticket(45, ""));
+		tickets.add(new Ticket(51, ""));
+		tickets.add(new Ticket(52, ""));
+		tickets.add(new Ticket(53, ""));
+		tickets.add(new Ticket(54, ""));
+		tickets.add(new Ticket(55, ""));
+	}
+
+	public static void main(String[] args) throws IOException {
+
+		System.out.println("Starting Ticket Reservation Server");
+		ServerSocket listener = new ServerSocket(PORT);
+		System.out.println(listener.toString());
+		System.out.println("");
+		try {
+			while (true) {
+				Socket s = listener.accept();
+				new Handler(s).start();
+
+			}
+		} finally {
+			listener.close();
+		}
+	}
+
+	private static class Handler extends Thread {
+		private Socket socket;
+		private Scanner in;
+		private String doReserve;
+		private PrintStream out;
+		private int numberOfTicketsRequested;
+		private String customerEmailId;
+		
+
+		public Handler(Socket socket) {
+			this.socket = socket;
+		}
+
+		public void run() {
+			try {
+				
+				in = new Scanner(socket.getInputStream());
+				out = new PrintStream(socket.getOutputStream());
+				
+				TicketServiceImpl ticketServiceImpl = new TicketServiceImpl();
+				int availableTickets = 0;
+				numberOfTicketsRequested = in.nextInt();
+				customerEmailId = in.next();
+				System.out.println("Reserving "+ numberOfTicketsRequested + " tickets for: " + customerEmailId);
+				if (numberOfTicketsRequested > 0) {
+					synchronized (tickets) {
+						availableTickets = ticketServiceImpl.numSeatsAvailable(tickets);
+						if(availableTickets > 0 && numberOfTicketsRequested <= availableTickets) {
+							ticketsOnHold = ticketServiceImpl.findAndHoldSeats(numberOfTicketsRequested, customerEmailId, tickets);
+							out.println("true");
+							doReserve = in.next();
+							if("NO".equalsIgnoreCase(doReserve)){
+								releaseTicketsOnHold(ticketsOnHold);
+						        return;
+							}
+						}
+						else {
+							out.println(
+									"Unable to make reservation. You have requested to book " + numberOfTicketsRequested + ", but Maximum available seats are: " + totalAvailableSeats());
+							return;
+						}
+					}
+					
+					if(doReserve.equalsIgnoreCase("YES") || doReserve.equalsIgnoreCase("Y")) {
+						synchronized(tickets) {
+							reservationUniqueId = ticketServiceImpl.reserveSeats(ticketsOnHold, customerEmailId, tickets);
+							if (null != reservationUniqueId || !"".equals(reservationUniqueId)) {
+								ticketsOnHold = new ArrayList<Ticket>();
+							}
+							System.out.println("Reserved seats successfully for " + customerEmailId + " with unique id: " + reservationUniqueId);
+							out.println("Thank you, for reserving with our system, " + customerEmailId + "! Please provide the unique id \"" + reservationUniqueId + "\" at the kiosk to print the tickets.");
+						} 
+					} else {
+						out.println("Thank You, " + customerEmailId);
+						return;
+					}
+
+				} else {
+					out.println("Please reserve tickets > 0");
+					return;
+				}
+
+			} catch (IOException e) {
+				System.out.println(e);
+			} finally {
+				try {
+					socket.close();
+				} catch (IOException e) {
+				}
+			}
+		}
+		
+		public int totalAvailableSeats() {
+			int availableSeatsAtThisTime = 0;
+			for(Ticket t: tickets) {
+				if(t.getStatus().equalsIgnoreCase("AVAILABLE")) {
+					availableSeatsAtThisTime++;
+				}
+			}
+			
+			return availableSeatsAtThisTime;
+		}
+		
+		public void releaseTicketsOnHold(List<Ticket> ticketsOnHold) {
+			int bookingCount = ticketsOnHold.size();
+			for (Ticket t : ticketsOnHold) {
+				if (tickets.contains(t) && bookingCount > 0) {
+					t.setStatus(Ticket.availableStatus.AVAILABLE.name().toString());
+					tickets.set(t.getSeatNumber(), t);
+					bookingCount--;
+				}
+			}
+		}
+		
+	}
+}

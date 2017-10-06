@@ -1,0 +1,110 @@
+package com.ticket.ticketServer;
+
+import java.io.IOException;
+import java.io.PrintStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.Scanner;
+import java.util.concurrent.ExecutionException;
+
+public class TicketClient {
+
+	Scanner in;
+	PrintStream out;
+	static String doReserve;
+
+	/**
+	 * Takes user input on 1. Number of seats to book, 2. Email address, 3.
+	 * Confirmation to book the seats. Displays appropriate response received
+	 * from server
+	 * 
+	 * 
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 * @throws InterruptedException
+	 * @throws ExecutionException 
+	 */
+	@SuppressWarnings({ "resource", "deprecation" })
+	private void run() throws UnknownHostException, IOException, InterruptedException, ExecutionException {
+		final Scanner in1 = new Scanner(System.in);
+		Socket socket = new Socket("127.0.0.1", 8080);
+		in = new Scanner(socket.getInputStream());
+
+		int numberOfTickets;
+		do {
+			System.out.println("Please enter number of tickets to reserve: ");
+			while (!in1.hasNextInt()) {
+				System.out.println("Please enter valid number of seats");
+				in1.next();
+			}
+			numberOfTickets = in1.nextInt();
+		} while (numberOfTickets <= 0);
+
+		out = new PrintStream(socket.getOutputStream());
+
+		System.out.println("Please enter valid email address: ");
+		String emailAddress = in1.next();
+
+		out.println(numberOfTickets);
+		out.println(emailAddress);
+
+		String returnStatus = in.nextLine();
+
+		if ("true".equalsIgnoreCase(returnStatus)) {
+			Thread watcher = new Thread(new UserInputWatcher(Thread.currentThread(), doReserve));
+			watcher.start();
+
+			try {
+				System.out.println("Please confirm to reserve YES(Y)/NO(N): ");
+				Thread.sleep(10000);
+				watcher.stop();
+				out.println("TIMEDOUT");
+				System.out.println("Oops! Server timed out. Please try again");
+				System.exit(0);
+			} catch (InterruptedException e) {
+				watcher.stop();
+				System.out.println(doReserve);
+				out.println(doReserve);
+				String s = in.nextLine();
+				System.out.println(s);
+			}
+		} else {
+			System.out.println(returnStatus);
+		}
+
+	}
+
+	public static void main(String[] args) throws Exception {
+		TicketClient client = new TicketClient();
+		client.run();
+	}
+	
+	public class UserInputWatcher implements Runnable {
+
+		private Thread watchedThread;
+
+		public UserInputWatcher(Thread watchedThread, String doReserve) {
+			super();
+			this.watchedThread = watchedThread;
+		}
+
+		public void run() {
+			
+			@SuppressWarnings("resource")
+			Scanner scanner = new Scanner(System.in);
+			doReserve = scanner.nextLine();
+			while (true) {
+				if ("YES".equalsIgnoreCase(doReserve) || "Y".equalsIgnoreCase(doReserve) || "NO".equalsIgnoreCase(doReserve)
+						|| "N".equalsIgnoreCase(doReserve)) {
+					watchedThread.interrupt();
+					return;
+				} else {
+					System.out.println("Please enter Valid selection. (YES)(Y) or (NO)(N)");
+					System.out.println("Please confirm to reserve YES(Y)/NO(N): ");
+					doReserve = scanner.nextLine();
+				}
+			}
+
+		}
+	}
+}

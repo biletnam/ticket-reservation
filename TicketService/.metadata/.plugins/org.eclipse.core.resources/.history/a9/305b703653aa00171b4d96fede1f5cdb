@@ -1,0 +1,35 @@
+package main.java.com.ticket.Ticket;
+
+import junit.framework.TestCase;
+
+public class TestTicket extends TestCase {
+
+	public void testTicket() {
+		fail("Not yet implemented");
+	}
+
+	public void testGetStatus() {
+		fail("Not yet implemented");
+	}
+
+	public void testSetStatus() {
+		fail("Not yet implemented");
+	}
+
+	public void testGetSeatNumber() {
+		fail("Not yet implemented");
+	}
+
+	public void testSetSeatNumber() {
+		fail("Not yet implemented");
+	}
+
+	public void testGetCustomerEmailId() {
+		fail("Not yet implemented");
+	}
+
+	public void testSetCustomerEmailId() {
+		fail("Not yet implemented");
+	}
+
+}

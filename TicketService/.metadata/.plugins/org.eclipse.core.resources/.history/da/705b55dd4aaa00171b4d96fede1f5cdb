@@ -1,0 +1,26 @@
+package com.ticket.ticketServer;
+
+import java.util.Scanner;
+
+public class UserInputWatcher implements Runnable {
+
+	private Thread watchedThread;
+
+	public UserInputWatcher(Thread watchedThread) {
+		super();
+		this.watchedThread = watchedThread;
+	}
+
+	public void run() {
+		System.out.println("Watcher running on " + watchedThread.getName());
+
+		Scanner scanner = new Scanner(System.in);
+
+		System.out.println("Enter any albhapet: ");
+		String s = scanner.nextLine();
+		if (s != null)
+			watchedThread.interrupt();
+		System.out.println("You entered: " + s);
+
+	}
+}
